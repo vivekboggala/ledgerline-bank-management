@@ -1,26 +1,33 @@
-const STORAGE_KEY = 'ledgerline-demo-v1';
-const today = new Date().toISOString().slice(0, 10);
+const STORAGE_KEY = 'ledgerline-demo-in-v2';
+const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 const seed = {
   customers: [
-    { id: 'c-101', name: 'Olivia Bennett', email: 'olivia.bennett@email.com', phone: '(415) 555-0182', joined: '2026-10-28' },
-    { id: 'c-102', name: 'Ethan Chen', email: 'ethan.chen@email.com', phone: '(415) 555-0127', joined: '2026-10-25' },
-    { id: 'c-103', name: 'Sofia Ramirez', email: 'sofia.ramirez@email.com', phone: '(415) 555-0193', joined: '2026-10-21' },
-    { id: 'c-104', name: 'Noah Williams', email: 'noah.williams@email.com', phone: '(415) 555-0144', joined: '2026-10-18' },
-    { id: 'c-105', name: 'Amara Johnson', email: 'amara.johnson@email.com', phone: '(415) 555-0168', joined: '2026-10-14' }
+    { id: 'c-101', name: 'Aarav Sharma', email: 'aarav.sharma@example.in', phone: '+91 98765 40182', joined: '2026-10-28' },
+    { id: 'c-102', name: 'Priya Nair', email: 'priya.nair@example.in', phone: '+91 98765 40127', joined: '2026-10-25' },
+    { id: 'c-103', name: 'Rohan Mehta', email: 'rohan.mehta@example.in', phone: '+91 98765 40193', joined: '2026-10-21' },
+    { id: 'c-104', name: 'Ananya Rao', email: 'ananya.rao@example.in', phone: '+91 98765 40144', joined: '2026-10-18' },
+    { id: 'c-105', name: 'Kabir Shah', email: 'kabir.shah@example.in', phone: '+91 98765 40168', joined: '2026-10-14' }
   ],
   accounts: [
-    { id: 'a-201', customerId: 'c-101', number: 'LL-38492051', type: 'Checking', balance: 12480.5, status: 'Active' },
-    { id: 'a-202', customerId: 'c-102', number: 'LL-72915384', type: 'Savings', balance: 28750, status: 'Active' },
-    { id: 'a-203', customerId: 'c-103', number: 'LL-50618273', type: 'Checking', balance: 8392.16, status: 'Active' },
-    { id: 'a-204', customerId: 'c-104', number: 'LL-19472836', type: 'Business', balance: 45210.75, status: 'Pending' },
-    { id: 'a-205', customerId: 'c-105', number: 'LL-86203491', type: 'Savings', balance: 16805.2, status: 'Active' }
+    { id: 'a-201', customerId: 'c-101', number: 'IN-38492051', type: 'Savings', balance: 124805.5, status: 'Active' },
+    { id: 'a-202', customerId: 'c-102', number: 'IN-72915384', type: 'Savings', balance: 287500, status: 'Active' },
+    { id: 'a-203', customerId: 'c-103', number: 'IN-50618273', type: 'Salary', balance: 83921.6, status: 'Active' },
+    { id: 'a-204', customerId: 'c-104', number: 'IN-19472836', type: 'Current', balance: 452107.5, status: 'Pending' },
+    { id: 'a-205', customerId: 'c-105', number: 'IN-86203491', type: 'Savings', balance: 168052, status: 'Active' }
+  ],
+  transactions: [
+    { id: 't-301', accountId: 'a-201', type: 'Deposit', amount: 85000, description: 'Salary credit', createdAt: `${today}T09:18:00+05:30` },
+    { id: 't-302', accountId: 'a-202', type: 'Withdrawal', amount: 12500, description: 'UPI transfer', createdAt: `${today}T08:42:00+05:30` },
+    { id: 't-303', accountId: 'a-203', type: 'Deposit', amount: 42000, description: 'Cheque deposit', createdAt: `${today}T08:06:00+05:30` }
   ]
 };
 
 function loadData() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (saved && Array.isArray(saved.customers) && Array.isArray(saved.accounts)) return saved;
+    if (saved && Array.isArray(saved.customers) && Array.isArray(saved.accounts)) {
+      return { ...saved, transactions: Array.isArray(saved.transactions) ? saved.transactions : [] };
+    }
   } catch (error) {
     console.warn('Ledgerline demo data could not be loaded.', error);
   }
@@ -36,17 +43,20 @@ let toastTimer;
 const byId = (id) => document.getElementById(id);
 const dialog = byId('record-dialog');
 const form = byId('record-form');
-const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
-const dateFormat = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+const transactionDialog = byId('transaction-dialog');
+const transactionForm = byId('transaction-form');
+const money = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 });
+const dateFormat = new Intl.DateTimeFormat('en-IN', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Kolkata' });
+const transactionDateFormat = new Intl.DateTimeFormat('en-IN', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
 
 function updateGreeting() {
   const now = new Date();
-  const hour = now.getHours();
+  const hour = Number(new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', hour: 'numeric', hourCycle: 'h23' }).format(now));
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-  byId('current-date').textContent = new Intl.DateTimeFormat('en-US', {
-    weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
+  byId('current-date').textContent = new Intl.DateTimeFormat('en-IN', {
+    weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata'
   }).format(now).toUpperCase();
-  byId('greeting-copy').textContent = `${greeting}, Jordan`;
+  byId('greeting-copy').textContent = `${greeting}, Vivek`;
 }
 
 function saveData() {
@@ -74,6 +84,11 @@ function customerCount(customerId) {
   return data.accounts.filter((account) => account.customerId === customerId).length;
 }
 
+function transactionDate(value) {
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? '—' : transactionDateFormat.format(parsed);
+}
+
 function formattedDate(value) {
   if (!value) return '—';
   const parsed = new Date(`${value}T00:00:00Z`);
@@ -92,7 +107,23 @@ function accountRow(account) {
     <td><div class="person-cell"><span class="person-initials">${escapeHtml(initials(name))}</span><span class="person-name">${escapeHtml(name)}</span></div></td>
     <td>${escapeHtml(account.type)}</td><td class="balance-cell">${money.format(Number(account.balance) || 0)}</td>
     <td><span class="status-badge ${statusClass(account.status)}">${escapeHtml(account.status)}</span></td>
-    <td><div class="row-actions"><button class="row-action" data-edit="account" data-id="${escapeHtml(account.id)}" aria-label="Edit account ${escapeHtml(account.number)}" title="Edit account">✎</button><button class="row-action delete" data-delete="account" data-id="${escapeHtml(account.id)}" aria-label="Delete account ${escapeHtml(account.number)}" title="Delete account">×</button></div></td>
+    <td><div class="row-actions"><button class="row-action" data-transaction="${escapeHtml(account.id)}" aria-label="Record transaction for ${escapeHtml(account.number)}" title="Record transaction" ${account.status !== 'Active' ? 'disabled' : ''}>↕</button><button class="row-action" data-edit="account" data-id="${escapeHtml(account.id)}" aria-label="Edit account ${escapeHtml(account.number)}" title="Edit account">✎</button><button class="row-action delete" data-delete="account" data-id="${escapeHtml(account.id)}" aria-label="Delete account ${escapeHtml(account.number)}" title="Delete account">×</button></div></td>
+  </tr>`;
+}
+
+function transactionRow(transaction, compact = false) {
+  const account = data.accounts.find((item) => item.id === transaction.accountId);
+  const customer = account && customerFor(account);
+  const isDeposit = transaction.type === 'Deposit';
+  const sign = isDeposit ? '+' : '−';
+  const kind = isDeposit ? 'deposit' : 'withdrawal';
+  return `<tr>
+    <td class="secondary-cell">${transactionDate(transaction.createdAt)}</td>
+    <td><div class="account-cell"><span class="account-symbol" aria-hidden="true">▤</span><span class="account-number">${escapeHtml(account?.number || 'Account removed')}</span></div></td>
+    ${compact ? '' : `<td class="secondary-cell">${escapeHtml(customer?.name || '—')}</td>`}
+    <td class="secondary-cell">${escapeHtml(transaction.description || 'No description')}</td>
+    <td><span class="transaction-kind ${kind}"><span class="transaction-sign">${sign}</span>${escapeHtml(transaction.type)}</span></td>
+    <td class="transaction-amount ${kind}">${sign} ${money.format(Number(transaction.amount) || 0)}</td>
   </tr>`;
 }
 
@@ -114,32 +145,44 @@ function render() {
   const query = byId('global-search').value.trim().toLowerCase();
   const customerQuery = byId('customer-search').value.trim().toLowerCase() || (activeView === 'customers' ? query : '');
   const accountQuery = byId('account-search').value.trim().toLowerCase() || (activeView === 'accounts' ? query : '');
+  const transactionQuery = byId('transaction-search').value.trim().toLowerCase() || (activeView === 'activity' ? query : '');
   const filteredCustomers = data.customers.filter((customer) => `${customer.name} ${customer.email} ${customer.phone}`.toLowerCase().includes(customerQuery));
   const filteredAccounts = data.accounts.filter((account) => {
     const customer = customerFor(account);
     return `${account.number} ${account.type} ${account.status} ${customer?.name || ''}`.toLowerCase().includes(accountQuery);
   });
-  const openAccounts = data.accounts.filter((account) => account.status !== 'Closed');
+  const sortedTransactions = [...data.transactions].sort((first, second) => new Date(second.createdAt) - new Date(first.createdAt));
+  const filteredTransactions = sortedTransactions.filter((transaction) => {
+    const account = data.accounts.find((item) => item.id === transaction.accountId);
+    const customer = account && customerFor(account);
+    return `${account?.number || ''} ${customer?.name || ''} ${transaction.type} ${transaction.description || ''} ${transaction.amount}`.toLowerCase().includes(transactionQuery);
+  });
+  const activeAccounts = data.accounts.filter((account) => account.status === 'Active');
 
-  byId('total-deposits').textContent = money.format(openAccounts.reduce((total, account) => total + (Number(account.balance) || 0), 0));
+  byId('total-deposits').textContent = money.format(activeAccounts.reduce((total, account) => total + (Number(account.balance) || 0), 0));
   byId('total-customers').textContent = String(data.customers.length);
-  byId('total-accounts').textContent = String(openAccounts.length);
+  byId('total-accounts').textContent = String(activeAccounts.length);
   byId('customer-nav-count').textContent = String(data.customers.length);
   byId('account-nav-count').textContent = String(data.accounts.length);
   byId('customer-list-count').textContent = `${filteredCustomers.length} ${filteredCustomers.length === 1 ? 'customer' : 'customers'}`;
   byId('account-list-count').textContent = `${filteredAccounts.length} ${filteredAccounts.length === 1 ? 'account' : 'accounts'}`;
+  byId('transaction-list-count').textContent = `${filteredTransactions.length} ${filteredTransactions.length === 1 ? 'transaction' : 'transactions'}`;
 
   byId('recent-accounts-body').innerHTML = data.accounts.slice(0, 5).map(accountRow).join('');
   byId('customers-body').innerHTML = filteredCustomers.map(customerRow).join('');
   byId('accounts-body').innerHTML = filteredAccounts.map(accountRow).join('');
+  byId('recent-transactions-body').innerHTML = sortedTransactions.slice(0, 5).map((transaction) => transactionRow(transaction, true)).join('');
+  byId('transactions-body').innerHTML = filteredTransactions.map((transaction) => transactionRow(transaction)).join('');
   setTableState('recent-accounts-body', 'recent-empty', data.accounts.length > 0);
   setTableState('customers-body', 'customers-empty', filteredCustomers.length > 0);
   setTableState('accounts-body', 'accounts-empty', filteredAccounts.length > 0);
+  setTableState('recent-transactions-body', 'recent-transactions-empty', sortedTransactions.length > 0);
+  setTableState('transactions-body', 'transactions-empty', filteredTransactions.length > 0);
   byId('recent-customers').innerHTML = data.customers.slice(0, 4).map((customer) => `<div class="customer-mini"><span class="person-initials">${escapeHtml(initials(customer.name))}</span><div class="customer-mini-copy"><strong>${escapeHtml(customer.name)}</strong><span>${customerCount(customer.id)} ${customerCount(customer.id) === 1 ? 'account' : 'accounts'}</span></div></div>`).join('') || '<span class="secondary-cell">No customers added yet.</span>';
 }
 
 function navigate(view) {
-  if (!['overview', 'customers', 'accounts'].includes(view)) return;
+  if (!['overview', 'customers', 'accounts', 'activity'].includes(view)) return;
   activeView = view;
   document.querySelectorAll('.view-section').forEach((section) => { section.hidden = section.id !== `${view}-view`; });
   document.querySelectorAll('.nav-link').forEach((button) => {
@@ -175,6 +218,9 @@ function openForm(entity, id = null) {
   byId('account-fields').hidden = isCustomer;
   byId('customer-fields').querySelectorAll('input, select').forEach((field) => { field.disabled = !isCustomer; });
   byId('account-fields').querySelectorAll('input, select').forEach((field) => { field.disabled = isCustomer; });
+  form.elements.balance.readOnly = !isCustomer && Boolean(id);
+  byId('balance-label-text').textContent = id ? 'Current balance' : 'Opening balance';
+  byId('balance-helper').hidden = isCustomer || !id;
   byId('dialog-eyebrow').textContent = id ? 'EDIT RECORD' : 'NEW RECORD';
   byId('dialog-title').textContent = `${id ? 'Edit' : 'Add'} ${entity}`;
   byId('submit-record').textContent = `Save ${entity}`;
@@ -191,13 +237,30 @@ function openForm(entity, id = null) {
     select.innerHTML = data.customers.map((customer) => `<option value="${escapeHtml(customer.id)}">${escapeHtml(customer.name)}</option>`).join('');
     const account = data.accounts.find((item) => item.id === id);
     form.elements.customerId.value = account?.customerId || data.customers[0].id;
-    form.elements.number.value = account?.number || `LL-${Math.floor(10000000 + Math.random() * 90000000)}`;
-    form.elements.type.value = account?.type || 'Checking';
+    form.elements.number.value = account?.number || `IN-${Math.floor(10000000 + Math.random() * 90000000)}`;
+    form.elements.type.value = account?.type || 'Savings';
     form.elements.balance.value = account?.balance ?? '';
     form.elements.status.value = account?.status || 'Active';
   }
   dialog.showModal();
   form.querySelector(isCustomer ? '[name="name"]' : '[name="customerId"]').focus();
+}
+
+function openTransactionForm(accountId = '') {
+  const availableAccounts = data.accounts.filter((account) => account.status === 'Active');
+  if (availableAccounts.length === 0) {
+    showToast('No active accounts are available for transactions.');
+    return;
+  }
+  transactionForm.reset();
+  transactionForm.elements.accountId.innerHTML = availableAccounts.map((account) => {
+    const customer = customerFor(account);
+    return `<option value="${escapeHtml(account.id)}">${escapeHtml(account.number)} · ${escapeHtml(customer?.name || 'Unknown customer')}</option>`;
+  }).join('');
+  transactionForm.elements.accountId.value = availableAccounts.some((account) => account.id === accountId) ? accountId : availableAccounts[0].id;
+  byId('transaction-error').hidden = true;
+  transactionDialog.showModal();
+  transactionForm.elements.accountId.focus();
 }
 
 function deleteRecord(entity, id) {
@@ -221,10 +284,13 @@ document.addEventListener('click', (event) => {
   if (!target) return;
   if (target.dataset.view) navigate(target.dataset.view);
   if (target.dataset.navigate) navigate(target.dataset.navigate);
-  if (target.dataset.add) openForm(target.dataset.add);
+  if (target.dataset.add === 'transaction') openTransactionForm();
+  else if (target.dataset.add) openForm(target.dataset.add);
+  if (target.dataset.transaction) openTransactionForm(target.dataset.transaction);
   if (target.dataset.edit) openForm(target.dataset.edit, target.dataset.id);
   if (target.dataset.delete) deleteRecord(target.dataset.delete, target.dataset.id);
   if (target.classList.contains('dialog-close') || target.classList.contains('dialog-cancel')) dialog.close();
+  if (target.classList.contains('transaction-close') || target.classList.contains('transaction-cancel')) transactionDialog.close();
 });
 
 form.addEventListener('submit', (event) => {
@@ -262,12 +328,55 @@ form.addEventListener('submit', (event) => {
   showToast(`${isCustomer ? 'Customer' : 'Account'} ${editingId ? 'updated' : 'created'}.`);
 });
 
+transactionForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  if (!transactionForm.reportValidity()) return;
+  const formData = new FormData(transactionForm);
+  const account = data.accounts.find((item) => item.id === formData.get('accountId'));
+  const type = String(formData.get('type'));
+  const amount = Math.round(Number(formData.get('amount')) * 100) / 100;
+  const error = byId('transaction-error');
+
+  if (!account || account.status !== 'Active') {
+    error.textContent = 'Choose an active account.';
+    error.hidden = false;
+    return;
+  }
+  if (!Number.isFinite(amount) || amount <= 0) {
+    error.textContent = 'Enter an amount greater than zero.';
+    error.hidden = false;
+    return;
+  }
+  if (type === 'Withdrawal' && amount > Number(account.balance)) {
+    error.textContent = 'The withdrawal exceeds the available balance.';
+    error.hidden = false;
+    return;
+  }
+
+  const change = type === 'Deposit' ? amount : -amount;
+  account.balance = Math.round((Number(account.balance) + change) * 100) / 100;
+  data.transactions.unshift({
+    id: `t-${crypto.randomUUID()}`,
+    accountId: account.id,
+    type,
+    amount,
+    description: String(formData.get('description')).trim(),
+    createdAt: new Date().toISOString()
+  });
+  saveData();
+  transactionDialog.close();
+  render();
+  showToast(`${type} of ${money.format(amount)} posted.`);
+});
+
 byId('global-search').addEventListener('input', () => {
   const query = byId('global-search').value.trim().toLowerCase();
   const customerMatch = data.customers.some((customer) => `${customer.name} ${customer.email} ${customer.phone}`.toLowerCase().includes(query));
   const accountMatch = data.accounts.some((account) => `${account.number} ${account.type} ${account.status} ${customerFor(account)?.name || ''}`.toLowerCase().includes(query));
+  const transactionMatch = data.transactions.some((transaction) => `${transaction.type} ${transaction.description || ''} ${transaction.amount}`.toLowerCase().includes(query));
   if (query && customerMatch) activeView = 'customers';
   else if (query && accountMatch) activeView = 'accounts';
+  else if (query && transactionMatch) activeView = 'activity';
   document.querySelectorAll('.view-section').forEach((section) => { section.hidden = section.id !== `${activeView}-view`; });
   document.querySelectorAll('.nav-link').forEach((button) => {
     const active = button.dataset.view === activeView;
@@ -280,6 +389,7 @@ byId('global-search').addEventListener('input', () => {
 });
 byId('customer-search').addEventListener('input', render);
 byId('account-search').addEventListener('input', render);
+byId('transaction-search').addEventListener('input', render);
 document.addEventListener('keydown', (event) => {
   if (event.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
     event.preventDefault();
