@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f4f4ef" />
+    <title>Ledgerline | Bank operations</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="#overview" aria-label="Ledgerline home">
+          <span class="brand-mark" aria-hidden="true">L</span>
+          <span>ledgerline<span class="brand-period">.</span></span>
+        </a>
+
+        <div class="workspace-label">WORKSPACE</div>
+        <nav class="primary-nav" aria-label="Main navigation">
+          <button class="nav-link is-active" data-view="overview" aria-current="page">
+            <span class="nav-icon" aria-hidden="true">◫</span> Overview
+          </button>
+          <button class="nav-link" data-view="customers">
+            <span class="nav-icon" aria-hidden="true">♙</span> Customers
+            <span class="nav-count" id="customer-nav-count">0</span>
+          </button>
+          <button class="nav-link" data-view="accounts">
+            <span class="nav-icon" aria-hidden="true">▤</span> Accounts
+            <span class="nav-count" id="account-nav-count">0</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-bottom">
+          <div class="demo-note"><span class="demo-dot"></span> Demo environment</div>
+          <div class="user-chip">
+            <div class="avatar avatar-dark">JD</div>
+            <div><strong>Jordan Davis</strong><span>Branch manager</span></div>
+            <span class="more-icon" aria-hidden="true">···</span>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-area">
+        <header class="topbar">
+          <div class="breadcrumbs"><span>Operations</span><span class="crumb-slash">/</span><strong id="breadcrumb-current">Overview</strong></div>
+          <div class="topbar-actions">
+            <label class="search-box">
+              <span aria-hidden="true">⌕</span>
+              <input id="global-search" type="search" placeholder="Search customers or accounts" aria-label="Search customers or accounts" />
+              <kbd>/</kbd>
+            </label>
+            <button class="icon-button notification-button" aria-label="Notifications"><span aria-hidden="true">♧</span><i></i></button>
+            <div class="avatar avatar-light" aria-label="Jordan Davis">JD</div>
+          </div>
+        </header>
+
+        <div class="content-wrap">
+          <section class="view-section" id="overview-view">
+            <div class="page-heading">
+              <div><p class="eyebrow" id="current-date"></p><h1><span id="greeting-copy"></span><span class="heading-period">.</span></h1><p class="page-subtitle">Here’s what’s happening across your branch today.</p></div>
+              <button class="button button-primary" data-add="customer"><span aria-hidden="true">＋</span> New customer</button>
+            </div>
+
+            <div class="metrics-grid">
+              <article class="metric-card metric-primary">
+                <div class="metric-top"><span>Total deposits</span><span class="metric-mark" aria-hidden="true">↗</span></div>
+                <div class="metric-value" id="total-deposits">$0</div>
+                <div class="metric-foot"><span class="metric-indicator">●</span> Across all open accounts</div>
+                <div class="metric-watermark" aria-hidden="true">$</div>
+              </article>
+              <article class="metric-card">
+                <div class="metric-top"><span>Customers</span><span class="metric-icon icon-coral" aria-hidden="true">♙</span></div>
+                <div class="metric-value" id="total-customers">0</div>
+                <div class="metric-foot"><span class="metric-indicator green">●</span> Registered in this branch</div>
+              </article>
+              <article class="metric-card">
+                <div class="metric-top"><span>Open accounts</span><span class="metric-icon icon-blue" aria-hidden="true">▤</span></div>
+                <div class="metric-value" id="total-accounts">0</div>
+                <div class="metric-foot"><span class="metric-indicator blue">●</span> All account types</div>
+              </article>
+            </div>
+
+            <div class="section-heading"><div><p class="eyebrow">YOUR BRANCH</p><h2>Recent accounts</h2></div><button class="text-button" data-navigate="accounts">View all accounts <span aria-hidden="true">→</span></button></div>
+            <div class="table-shell">
+              <table>
+                <thead><tr><th>ACCOUNT</th><th>ACCOUNT HOLDER</th><th>TYPE</th><th>BALANCE</th><th>STATUS</th><th><span class="sr-only">Actions</span></th></tr></thead>
+                <tbody id="recent-accounts-body"></tbody>
+              </table>
+              <div class="empty-state" id="recent-empty" hidden><span class="empty-icon">▤</span><strong>No accounts yet</strong><span>Create an account to see branch activity here.</span><button class="button button-secondary" data-add="account">Add account</button></div>
+            </div>
+
+            <div class="overview-bottom">
+              <div class="section-heading compact-heading"><div><p class="eyebrow">PEOPLE</p><h2>Recently added</h2></div><button class="text-button" data-navigate="customers">All customers <span aria-hidden="true">→</span></button></div>
+              <div class="customer-strip" id="recent-customers"></div>
+            </div>
+          </section>
+
+          <section class="view-section" id="customers-view" hidden>
+            <div class="page-heading">
+              <div><p class="eyebrow">RELATIONSHIP MANAGEMENT</p><h1>Customers<span class="heading-period">.</span></h1><p class="page-subtitle">Manage customer details and their branch relationships.</p></div>
+              <button class="button button-primary" data-add="customer"><span aria-hidden="true">＋</span> New customer</button>
+            </div>
+            <div class="list-toolbar"><div class="list-summary"><strong id="customer-list-count">0 customers</strong><span>·</span><span>All records</span></div><label class="table-search"><span aria-hidden="true">⌕</span><input id="customer-search" type="search" placeholder="Find a customer" aria-label="Find a customer" /></label></div>
+            <div class="table-shell">
+              <table><thead><tr><th>CUSTOMER</th><th>EMAIL</th><th>PHONE</th><th>ACCOUNTS</th><th>ADDED</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody id="customers-body"></tbody></table>
+              <div class="empty-state" id="customers-empty" hidden><span class="empty-icon">♙</span><strong>No customers found</strong><span>Add a customer or change your search.</span><button class="button button-secondary" data-add="customer">Add customer</button></div>
+            </div>
+          </section>
+
+          <section class="view-section" id="accounts-view" hidden>
+            <div class="page-heading">
+              <div><p class="eyebrow">DEPOSIT SERVICES</p><h1>Accounts<span class="heading-period">.</span></h1><p class="page-subtitle">Review balances and manage account records.</p></div>
+              <button class="button button-primary" data-add="account"><span aria-hidden="true">＋</span> New account</button>
+            </div>
+            <div class="list-toolbar"><div class="list-summary"><strong id="account-list-count">0 accounts</strong><span>·</span><span>All records</span></div><label class="table-search"><span aria-hidden="true">⌕</span><input id="account-search" type="search" placeholder="Find an account" aria-label="Find an account" /></label></div>
+            <div class="table-shell">
+              <table><thead><tr><th>ACCOUNT</th><th>ACCOUNT HOLDER</th><th>TYPE</th><th>BALANCE</th><th>STATUS</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody id="accounts-body"></tbody></table>
+              <div class="empty-state" id="accounts-empty" hidden><span class="empty-icon">▤</span><strong>No accounts found</strong><span>Open an account or change your search.</span><button class="button button-secondary" data-add="account">Add account</button></div>
+            </div>
+          </section>
+          <footer class="page-footer"><span>Ledgerline <span class="footer-dot">·</span> Branch operations</span><span>Demo data only <span class="footer-dot">·</span> Not for real financial use</span></footer>
+        </div>
+      </main>
+    </div>
+
+    <dialog class="record-dialog" id="record-dialog" aria-labelledby="dialog-title">
+      <form id="record-form" novalidate>
+        <div class="dialog-header"><div><p class="eyebrow" id="dialog-eyebrow">NEW RECORD</p><h2 id="dialog-title">Add customer</h2></div><button class="icon-button dialog-close" type="button" aria-label="Close dialog">×</button></div>
+        <div id="customer-fields" class="form-fields" hidden>
+          <label class="field-label">Full name<input name="name" autocomplete="name" required maxlength="80" placeholder="e.g. Alex Morgan" /></label>
+          <label class="field-label">Email address<input name="email" type="email" autocomplete="email" required maxlength="120" placeholder="alex@example.com" /></label>
+          <label class="field-label">Phone number<input name="phone" type="tel" autocomplete="tel" required maxlength="30" placeholder="(555) 000-0000" /></label>
+          <label class="field-label">Date added<input name="joined" type="date" required /></label>
+        </div>
+        <div id="account-fields" class="form-fields" hidden>
+          <label class="field-label">Account holder<select name="customerId" required></select></label>
+          <label class="field-label">Account number<input name="number" required maxlength="24" placeholder="LL-00000000" /></label>
+          <label class="field-label">Account type<select name="type" required><option value="Checking">Checking</option><option value="Savings">Savings</option><option value="Business">Business</option></select></label>
+          <label class="field-label">Current balance<input name="balance" type="number" min="0" step="0.01" required placeholder="0.00" /></label>
+          <label class="field-label">Status<select name="status" required><option value="Active">Active</option><option value="Pending">Pending</option><option value="Closed">Closed</option></select></label>
+        </div>
+        <p class="form-error" id="form-error" role="alert" hidden></p>
+        <div class="dialog-actions"><button class="button button-secondary dialog-cancel" type="button">Cancel</button><button class="button button-primary" type="submit" id="submit-record">Save customer</button></div>
+      </form>
+    </dialog>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
